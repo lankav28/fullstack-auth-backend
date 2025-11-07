@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const taskRoutes = require("./routes/tasks");
 
 
 
@@ -26,6 +27,8 @@ mongoose
 
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/user", require("./routes/user"));
+app.use("/api/tasks", taskRoutes); 
+
 
 app.get("/", (req, res) => res.json({ message: "API Running ✅" }));
 
