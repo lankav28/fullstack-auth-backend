@@ -15,21 +15,21 @@ const allowedOrigins = [
   "http://localhost:5173",
 ];
 
+// ✅ Improved CORS setup for Render + Surge
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn("🚫 CORS blocked origin:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
+    origin: [
+      "https://fullstack-auth-app.surge.sh",
+      "http://fullstack-auth-app.surge.sh",
+      "http://localhost:5173",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    optionsSuccessStatus: 200, // Fixes preflight on older browsers
   })
 );
+
 
 // ✅ MongoDB connection
 mongoose
