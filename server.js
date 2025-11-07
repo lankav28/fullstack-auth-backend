@@ -12,27 +12,19 @@ const app = express();
 // ✅ Middleware
 app.use(express.json());
 
-// ✅ CORS Configuration (for Render + Surge)
-const allowedOrigins = [
-  "https://fullstack-auth-app.surge.sh", // your Surge frontend
-  "http://localhost:5173",               // local development
-];
+// ✅ CORS Configuration (Render + Surge fix)
+const corsOptions = {
+  origin: [
+    "https://fullstack-auth-app.surge.sh", // your Surge frontend
+    "http://localhost:5173",               // local development
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn(`🚫 Blocked by CORS: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Handle preflight requests
 
 // ✅ MongoDB Connection
 mongoose
@@ -40,7 +32,7 @@ mongoose
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => {
     console.error("❌ MongoDB Connection Error:", err.message);
-    process.exit(1); // stop app if DB fails to connect
+    process.exit(1);
   });
 
 // ✅ Import Routes
@@ -67,7 +59,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ Dynamic Port (Render requirement)
+// ✅ Dynamic Port (Render fix)
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
