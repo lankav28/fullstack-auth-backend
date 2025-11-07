@@ -13,13 +13,16 @@ const allowedOrigins = [
   "http://localhost:5173",               // local dev
 ];
 
+const cors = require("cors");
+
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: "*", // temporarily allow all
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 
 
 // Middleware
