@@ -2,30 +2,43 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 
-// 🟢 Register
+// ========================
+// 🟢 REGISTER USER
+// ========================
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    // ✅ Validate inputs
     if (!name || !email || !password)
       return res.status(400).json({ message: "All fields are required" });
 
-    const existing = await User.findOne({ email });
-    if (existing)
+    // ✅ Check for existing user
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
       return res.status(400).json({ message: "User already exists" });
 
-    const user = await User.create({ name, email, password });
+    // ✅ Create new user (password gets hashed in model pre-save hook)
+    const newUser = await User.create({ name, email, password });
 
+    // ✅ Generate JWT
     const token = jwt.sign(
-      { id: user._id },
+      { id: newUser._id },
       process.env.JWT_SECRET || "your_jwt_secret",
       { expiresIn: "7d" }
     );
 
+    // ✅ Respond
     res.status(201).json({
       message: "Registered successfully",
-      user: { id: user._id, name: user.name, email: user.email },
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+      },
       token,
     });
   } catch (err) {
@@ -34,31 +47,43 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// 🟢 Login
+// ========================
+// 🟣 LOGIN USER
+// ========================
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("🔹 Login Attempt:", { email, password });
+    console.log("🔹 Login Attempt:", email);
 
+    // ✅ Validate inputs
     if (!email || !password)
       return res.status(400).json({ message: "Please fill in all fields" });
 
+    // ✅ Find user by email and explicitly include password
     const user = await User.findOne({ email }).select("+password");
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    const bcrypt = require("bcryptjs");
+    if (!user) {
+      console.log("❌ No user found for:", email);
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // ✅ Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log("Password match:", isMatch);
+    console.log("🔑 Hashed password in DB:", user.password);
+    console.log("🧩 Entered password:", password);
+    console.log("✅ Password match:", isMatch);
 
     if (!isMatch)
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid email or password" });
 
+    // ✅ Generate JWT
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET || "your_jwt_secret",
       { expiresIn: "7d" }
     );
 
+    // ✅ Respond
     res.json({
       message: "Login successful",
       user: { id: user._id, name: user.name, email: user.email },
