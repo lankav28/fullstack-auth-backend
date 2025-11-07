@@ -8,17 +8,19 @@ dotenv.config();
 
 const app = express();
 
-// ✅ FIXED CORS CONFIG for Surge + Render
+const allowedOrigins = [
+  "https://fullstack-auth-app.surge.sh", // your frontend
+  "http://localhost:5173",               // local dev
+];
+
 app.use(
   cors({
-    origin: [
-      "https://fullstack-auth-app.surge.sh", // your frontend live URL
-      "http://localhost:5173",               // for local testing (Vite default)
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
   })
 );
+
 
 // Middleware
 app.use(express.json());
