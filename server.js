@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
+
+
 dotenv.config();
 const app = express();
 
@@ -23,6 +25,7 @@ mongoose
   .catch((err) => console.error("❌ MongoDB Error:", err));
 
 app.use("/api/auth", require("./routes/auth"));
+app.use("/api/user", require("./routes/user"));
 
 app.get("/", (req, res) => res.json({ message: "API Running ✅" }));
 
