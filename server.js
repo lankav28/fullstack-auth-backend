@@ -13,6 +13,7 @@ const app = express();
 app.use(express.json());
 
 // ✅ CORS Configuration (Render + Surge fix)
+// ✅ CORS Configuration (Render + Surge fix)
 const corsOptions = {
   origin: [
     "https://fullstack-auth-app.surge.sh", // your Surge frontend
@@ -23,8 +24,12 @@ const corsOptions = {
   credentials: true,
 };
 
+// main CORS
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // Handle preflight requests
+
+// fix preflight requests (Express 5+ compatible)
+app.options("/*", cors(corsOptions));
+
 
 // ✅ MongoDB Connection
 mongoose
