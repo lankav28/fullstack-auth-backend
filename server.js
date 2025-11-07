@@ -8,13 +8,24 @@ dotenv.config();
 
 const app = express();
 
+// ✅ FIXED CORS CONFIG for Surge + Render
+app.use(
+  cors({
+    origin: [
+      "https://fullstack-auth-app.surge.sh", // your frontend live URL
+      "http://localhost:5173",               // for local testing (Vite default)
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/fullstack-auth-app')
-
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB Connected'))
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
