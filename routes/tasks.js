@@ -7,6 +7,7 @@ const Task = require("../models/Task");
 // 🟢 GET all tasks for the logged-in user
 router.get("/", auth, async (req, res) => {
   try {
+     console.log("🧠 Authenticated user:", req.user); // 👈 Add this
     const { search, status, priority } = req.query;
 
     // ✅ Use _id (Mongo format), not id

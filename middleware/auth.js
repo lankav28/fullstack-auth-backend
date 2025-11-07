@@ -13,16 +13,17 @@ module.exports = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "your_jwt_secret");
-    const user = await User.findById(decoded.id).select("_id name email");
 
+    // ✅ Fetch user safely, exclude password
+    const user = await User.findById(decoded.id).select("-password");
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
 
-    req.user = user; // attach user to request
+    req.user = user; // ✅ Attach full user object
     next();
   } catch (err) {
-    console.error("❌ Auth Middleware Error:", err.message);
+    console.error("❌ Auth Middleware Error:", err);
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 };
