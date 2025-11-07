@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
+// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -11,36 +12,43 @@ const app = express();
 // ✅ Middleware
 app.use(express.json());
 
-// ✅ CORS setup (simplified and safe)
+// ✅ CORS Configuration (for Render + Surge)
+const allowedOrigins = [
+  "https://fullstack-auth-app.surge.sh", // your Surge frontend
+  "http://localhost:5173",               // local development
+];
+
 app.use(
   cors({
-    origin: [
-      "https://fullstack-auth-app.surge.sh", // frontend
-      "http://localhost:5173",               // local dev
-    ],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`🚫 Blocked by CORS: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 
 // ✅ MongoDB Connection
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 10000, // to avoid long hanging
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => {
     console.error("❌ MongoDB Connection Error:", err.message);
-    process.exit(1); // stop if DB fails to connect
+    process.exit(1); // stop app if DB fails to connect
   });
 
-// ✅ Routes
+// ✅ Import Routes
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const taskRoutes = require("./routes/tasks");
 
+// ✅ Use Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/tasks", taskRoutes);
@@ -50,7 +58,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Fullstack Auth API Running ✅" });
 });
 
-// ✅ Global Error Handling
+// ✅ Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error("❌ Server Error:", err.stack);
   res.status(500).json({
@@ -59,9 +67,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ Dynamic Port (Render fix)
+// ✅ Dynamic Port (Render requirement)
 const PORT = process.env.PORT || 10000;
-
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
